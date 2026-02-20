@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --color-indigo-50: #FFF8F5;
+  --color-indigo-100: #FFE6D9;
+  --color-indigo-200: #FFCCB3;
+  --color-indigo-300: #FFA880;
+  --color-indigo-400: #FF8A54;
+  --color-indigo-500: #FB923C;
+  --color-indigo-600: #F9773A;
+  --color-indigo-700: #E05E1E;
+  --color-indigo-800: #C24A10;
+  --color-indigo-900: #A33C0D;
+  --color-indigo-950: #541C04;
+}
+
+:root {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+body {
+  @apply bg-white text-slate-900 antialiased;
+  font-family: var(--font-sans);
+}
+
+.noscroll::-webkit-scrollbar {
+  display: none;
+}
+
+.noscroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes pulse-live {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.live-pulse {
+  animation: pulse-live 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.bubble-ping {
+  @apply relative flex h-3 w-3;
+}
+
+.bubble-ping::after {
+  content: '';
+  @apply absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75;
+}
