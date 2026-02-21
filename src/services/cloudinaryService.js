@@ -1,5 +1,5 @@
-const CLOUDINARY_UPLOAD_PRESET = "neominds_protocol";
-const CLOUDINARY_CLOUD_NAME = "dnf00n7ha";
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 
 export const uploadToCloudinary = async (file) => {
     const formData = new FormData();
