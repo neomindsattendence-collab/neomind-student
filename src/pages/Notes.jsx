@@ -2,19 +2,15 @@ import React, { useState, useEffect } from 'react';
 import {
     FileText,
     Search,
-    Filter,
     Download,
     Eye,
-    ArrowRight,
-    Inbox,
-    LayoutGrid,
-    ChevronRight,
-    FileBox
+    FileBox,
+    ExternalLink
 } from 'lucide-react';
-import { Card, Button, Badge, Modal, Input } from '../components/Common';
+import { Card, Button, Badge } from '../components/Common';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase/firebaseConfig';
-import { collection, query, where, onSnapshot, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, onSnapshot, orderBy, getDoc, doc } from 'firebase/firestore';
 
 const Notes = () => {
     const { userDoc } = useAuth();
@@ -22,19 +18,22 @@ const Notes = () => {
     const [batches, setBatches] = useState([]);
     const [selectedBatchId, setSelectedBatchId] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedNote, setSelectedNote] = useState(null);
     const [loading, setLoading] = useState(true);
 
     // Fetch batch names
     useEffect(() => {
         const fetchBatches = async () => {
             if (!userDoc?.assignedBatches?.length) return;
-            const bDetails = [];
-            for (const id of userDoc.assignedBatches) {
-                const snap = await getDocs(query(collection(db, 'batches'), where('__name__', '==', id)));
-                if (!snap.empty) bDetails.push({ id: snap.docs[0].id, name: snap.docs[0].data().name });
+            try {
+                const bDetails = [];
+                for (const id of userDoc.assignedBatches) {
+                    const snap = await getDoc(doc(db, 'batches', id));
+                    if (snap.exists()) bDetails.push({ id: snap.id, name: snap.data().name });
+                }
+                setBatches(bDetails);
+            } catch (err) {
+                console.error("Batch Fetch Error:", err);
             }
-            setBatches(bDetails);
         };
         fetchBatches();
     }, [userDoc]);
@@ -49,15 +48,21 @@ const Notes = () => {
         const unsubscribes = userDoc.assignedBatches.map(batchId => {
             const notesRef = collection(db, 'batches', batchId, 'notes');
             return onSnapshot(query(notesRef, orderBy('createdAt', 'desc')), (snapshot) => {
+                const batchName = batches.find(b => b.id === batchId)?.name || 'Batch';
+                const bNotes = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    batchId,
+                    batchName,
+                    ...doc.data()
+                }));
+
                 setNotes(prev => {
                     const others = prev.filter(n => n.batchId !== batchId);
-                    const bNotes = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        batchId,
-                        batchName: batches.find(b => b.id === batchId)?.name || 'Batch',
-                        ...doc.data()
-                    }));
-                    return [...others, ...bNotes];
+                    return [...others, ...bNotes].sort((a, b) => {
+                        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date();
+                        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date();
+                        return dateB - dateA;
+                    });
                 });
             });
         });
@@ -125,16 +130,24 @@ const Notes = () => {
                             <div className="flex-1">
                                 <h4 className="text-xl font-black text-slate-800 tracking-tight leading-tight group-hover:text-indigo-600 transition-colors uppercase">{note.title}</h4>
                                 <div className="mt-4 flex flex-col space-y-2">
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Resource for: <span className="text-indigo-600 font-black">{note.batchName}</span></p>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Batch: <span className="text-indigo-600 font-black">{note.batchName}</span></p>
                                     <p className="text-[10px] font-black text-slate-400 uppercase mt-2">
                                         {note.createdAt?.toDate ? note.createdAt.toDate().toLocaleDateString() : 'New'}
                                     </p>
                                 </div>
                             </div>
                             <div className="mt-8 pt-6 border-t border-slate-50 flex gap-3">
-                                <Button variant="primary" className="flex-1 text-[10px] uppercase font-black tracking-widest py-3 shadow-lg shadow-indigo-100">
-                                    <Download size={14} className="mr-2" /> View Material
-                                </Button>
+                                {note.fileUrl ? (
+                                    <a href={note.fileUrl} target="_blank" rel="noreferrer" className="w-full">
+                                        <Button variant="primary" className="w-full text-[10px] uppercase font-black tracking-widest py-3 shadow-lg shadow-indigo-100">
+                                            <ExternalLink size={14} className="mr-2" /> Open Material
+                                        </Button>
+                                    </a>
+                                ) : (
+                                    <Button variant="ghost" className="w-full cursor-not-allowed opacity-50">
+                                        No Payload
+                                    </Button>
+                                )}
                             </div>
                         </Card>
                     ))}
