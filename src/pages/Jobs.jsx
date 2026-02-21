@@ -1,6 +1,12 @@
+import React, { useState, useEffect } from 'react';
+import {
+    Briefcase,
+    Building2,
+    ChevronRight
+} from 'lucide-react';
 import { db } from '../firebase/firebaseConfig';
 import { collection, getDocs } from 'firebase/firestore';
-import { Skeleton, EmptyState } from '../components/Common';
+import { Skeleton, EmptyState, Card, Button } from '../components/Common';
 
 const Jobs = () => {
     const [jobsData, setJobsData] = useState([]);

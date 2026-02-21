@@ -25,7 +25,7 @@ import { useSession } from '../context/SessionContext';
 
 const Dashboard = () => {
     const { userDoc } = useAuth();
-    const { liveSessions, isAnyLive, joinSession, sessionStatus, locationError, isVerifying } = useSession();
+    const { liveSessions, isAnyLive, joinSession, sessionStatus, locationError } = useSession();
     const navigate = useNavigate();
     const [realBatches, setRealBatches] = useState([]);
     const [recentNotes, setRecentNotes] = useState([]);
@@ -95,7 +95,7 @@ const Dashboard = () => {
                         <div>
                             <div className="flex items-center gap-3 mb-2">
                                 <span className="w-2 h-2 bg-white rounded-full animate-ping"></span>
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 italic">Academic Radius Link Detected</p>
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 italic">Live Session Logic Initialized</p>
                             </div>
                             <h3 className="text-3xl font-black tracking-tighter">{activeBatchLive?.name}</h3>
                             <p className="text-xs font-black uppercase tracking-widest opacity-60 mt-1">Status: Lead Instructor Active</p>
@@ -103,7 +103,6 @@ const Dashboard = () => {
                     </div>
                     <Button
                         variant="primary"
-                        loading={isVerifying}
                         className="bg-white text-rose-600 hover:bg-slate-50 border-none px-12 py-5 rounded-2x"
                         onClick={() => joinSession(activeBatchLive)}
                     >

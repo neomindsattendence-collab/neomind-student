@@ -1,7 +1,17 @@
+import React, { useState, useEffect } from 'react';
+import {
+    Layers,
+    TrendingUp,
+    Users,
+    BookOpen,
+    PieChart,
+    Clock,
+    ArrowRight
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
-import { Skeleton, EmptyState } from '../components/Common';
+import { Skeleton, EmptyState, Card, Badge, Button } from '../components/Common';
 
 const MyBatches = () => {
     const { userDoc } = useAuth();

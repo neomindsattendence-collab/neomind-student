@@ -1,3 +1,12 @@
+import React from 'react';
+import {
+    Lock,
+    Shield,
+    Bell,
+    Smartphone,
+    ChevronRight
+} from 'lucide-react';
+import { Card, Button, Badge, Input } from '../components/Common';
 import { useAuth } from '../context/AuthContext';
 
 const Settings = () => {

@@ -1,3 +1,11 @@
+import React, { useState } from 'react';
+import {
+    Search,
+    Bell,
+    Zap,
+    ChevronDown,
+    Menu
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Badge } from '../Common';
 

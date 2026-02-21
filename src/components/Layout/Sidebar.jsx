@@ -1,3 +1,19 @@
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import {
+    LayoutGrid,
+    Layers,
+    Radio,
+    FileText,
+    ClipboardCheck,
+    TrendingUp,
+    Briefcase,
+    FileSpreadsheet,
+    Settings,
+    Sparkles,
+    X,
+    LogOut
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = ({ isOpen, onClose }) => {

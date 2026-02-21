@@ -6,11 +6,14 @@ import {
     where,
     onSnapshot,
     doc,
+    setDoc,
     updateDoc,
     arrayUnion,
     serverTimestamp
 } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
+
+const SessionContext = createContext();
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371000; // meters
@@ -25,85 +28,87 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 
 export const SessionProvider = ({ children }) => {
     const { user, userDoc } = useAuth();
-    const [liveSessions, setLiveSessions] = useState({});
+    const [liveSessions, setLiveSessions] = useState({}); // { batchId: { sessionId, ...data } }
     const [sessionStatus, setSessionStatus] = useState('OFFLINE');
     const [activeSession, setActiveSession] = useState(null);
-    const [showJoinModal, setShowJoinModal] = useState(false);
-    const [locationError, setLocationError] = useState(null);
-    const [isVerifying, setIsVerifying] = useState(false);
+    const [duration, setDuration] = useState(0);
 
-    // Real-time listener for active sessions across all assigned batches
+    // Timer logic remains same
+    useEffect(() => {
+        let interval;
+        if (sessionStatus === 'JOINED') {
+            interval = setInterval(() => setDuration(prev => prev + 1), 1000);
+        } else {
+            setDuration(0);
+        }
+        return () => clearInterval(interval);
+    }, [sessionStatus]);
+
+    // 🎓 STUDENT FLOW: Live Real-time Listener on assigned batches
     useEffect(() => {
         if (!userDoc?.assignedBatches?.length) return;
 
         const unsubscribes = userDoc.assignedBatches.map(batchId => {
-            const sessionsRef = collection(db, "batches", batchId, "sessions");
-            const q = query(sessionsRef, where("status", "==", "live"));
+            const batchRef = doc(db, 'batches', batchId);
 
-            return onSnapshot(q, (snapshot) => {
-                setLiveSessions(prev => {
-                    const newSessions = { ...prev };
-                    if (!snapshot.empty) {
-                        newSessions[batchId] = { id: snapshot.docs[0].id, batchId, ...snapshot.docs[0].data() };
+            return onSnapshot(batchRef, (snap) => {
+                if (snap.exists()) {
+                    const batchData = snap.data();
+                    const activeId = batchData.activeSessionId;
+
+                    if (activeId) {
+                        // We found a live session! Now listen to the session document itself
+                        const sessionRef = doc(db, 'batches', batchId, 'sessions', activeId);
+                        onSnapshot(sessionRef, (sSnap) => {
+                            if (sSnap.exists() && sSnap.data().isLive) {
+                                setLiveSessions(prev => ({
+                                    ...prev,
+                                    [batchId]: {
+                                        id: activeId,
+                                        batchId,
+                                        name: batchData.name,
+                                        ...sSnap.data()
+                                    }
+                                }));
+                            } else {
+                                setLiveSessions(prev => {
+                                    const next = { ...prev };
+                                    delete next[batchId];
+                                    return next;
+                                });
+                            }
+                        });
                     } else {
-                        delete newSessions[batchId];
+                        setLiveSessions(prev => {
+                            const next = { ...prev };
+                            delete next[batchId];
+                            return next;
+                        });
                     }
-                    return newSessions;
-                });
+                }
             });
         });
 
-        return () => unsubscribes.forEach(unsub => unsub());
+        return () => unsubscribes.forEach(u => u());
     }, [userDoc]);
 
+    // 🎓 STUDENT ACTION: Join Session Protocol
     const joinSession = async (session) => {
-        if (!navigator.geolocation) {
-            setLocationError("GPS Hardware Not Detected.");
-            return;
+        if (!session || !user) return;
+
+        try {
+            const sessionRef = doc(db, "batches", session.batchId, "sessions", session.id);
+
+            // Mandatory update: add self to joinedStudents pool
+            await updateDoc(sessionRef, {
+                joinedStudents: arrayUnion(user.uid)
+            });
+
+            setActiveSession(session);
+            setSessionStatus('JOINED');
+        } catch (err) {
+            console.error("Join Protocol Error:", err);
         }
-
-        setIsVerifying(true);
-        navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                const { latitude, longitude } = position.coords;
-                const distance = calculateDistance(
-                    latitude, longitude,
-                    session.location.lat, session.location.lng
-                );
-
-                // Tolerance Band: +20m added to teacher's set radius
-                const allowedRadius = (session.radius || 100) + 20;
-
-                if (distance <= allowedRadius) {
-                    try {
-                        // Record check-in in Firestore
-                        const checkinRef = doc(db, "batches", session.batchId, "sessions", session.id, "checkins", user.uid);
-                        await setDoc(checkinRef, {
-                            uid: user.uid,
-                            name: userDoc?.name || user.email,
-                            timestamp: serverTimestamp(),
-                            distance: Math.round(distance)
-                        });
-
-                        setActiveSession(session);
-                        setSessionStatus('JOINED');
-                        setShowJoinModal(false);
-                        setLocationError(null);
-                    } catch (err) {
-                        console.error("Check-in error:", err);
-                        setLocationError("Security sync failed. Try again.");
-                    }
-                } else {
-                    setLocationError(`Outside academic radius (${Math.round(distance)}m away)`);
-                }
-                setIsVerifying(false);
-            },
-            (error) => {
-                setIsVerifying(false);
-                setLocationError("Location authorization required for attendance.");
-            },
-            { enableHighAccuracy: true, timeout: 5000 }
-        );
     };
 
     const leaveSession = () => {
@@ -112,6 +117,7 @@ export const SessionProvider = ({ children }) => {
     };
 
     const isAnyLive = Object.keys(liveSessions).length > 0;
+    const currentLiveSession = Object.values(liveSessions)[0];
 
     return (
         <SessionContext.Provider value={{
@@ -119,10 +125,8 @@ export const SessionProvider = ({ children }) => {
             isAnyLive,
             sessionStatus,
             activeSession,
-            showJoinModal,
-            setShowJoinModal,
-            locationError,
-            isVerifying,
+            activeBatch: activeSession?.name || currentLiveSession?.name || 'Class Session',
+            stats: { duration },
             joinSession,
             leaveSession
         }}>
