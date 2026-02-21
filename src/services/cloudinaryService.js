@@ -6,9 +6,15 @@ export const uploadToCloudinary = async (file) => {
     formData.append('file', file);
     formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
+    // 🛡️ PROTOCOL FIX: Ensure PDFs are handled as 'raw' for browser rendering compatibility
+    const isPDF = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+    const resourceType = isPDF ? 'raw' : 'image';
+
+    formData.append('resource_type', resourceType);
+
     try {
         const response = await fetch(
-            `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`,
+            `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
             {
                 method: 'POST',
                 body: formData,
