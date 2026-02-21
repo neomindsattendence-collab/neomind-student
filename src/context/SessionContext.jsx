@@ -8,8 +8,8 @@ import {
     doc,
     setDoc,
     updateDoc,
-    arrayUnion,
-    serverTimestamp
+    serverTimestamp,
+    getDoc
 } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 
@@ -34,7 +34,7 @@ export const SessionProvider = ({ children }) => {
     const [activeSession, setActiveSession] = useState(null);
     const [duration, setDuration] = useState(0);
 
-    // Timer logic remains same
+    // Timer logic
     useEffect(() => {
         let interval;
         if (sessionStatus === 'JOINED') {
@@ -45,7 +45,7 @@ export const SessionProvider = ({ children }) => {
         return () => clearInterval(interval);
     }, [sessionStatus]);
 
-    // 🎓 STUDENT FLOW: Live Real-time Listener on assigned batches
+    // 🎓 STUDENT FLOW: Live Geofence Discovery
     useEffect(() => {
         if (!userDoc?.assignedBatches?.length) return;
 
@@ -57,8 +57,6 @@ export const SessionProvider = ({ children }) => {
                     const batchData = snap.data();
                     const activeId = batchData.activeSessionId;
 
-                    // 🔥 MANDATORY AUTO-EXIT: If this student is in a session for this batch,
-                    // but the batch no longer has an activeSessionId, kick them out.
                     if (!activeId) {
                         setLiveSessions(prev => {
                             const next = { ...prev };
@@ -66,20 +64,18 @@ export const SessionProvider = ({ children }) => {
                             return next;
                         });
 
-                        setSessionStatus(prev => {
-                            if (activeSession?.batchId === batchId && prev === 'JOINED') {
-                                alert("Class Session Ended: Academic data synchronized.");
-                                return 'OFFLINE';
-                            }
-                            return prev;
-                        });
+                        if (activeSession?.batchId === batchId && sessionStatus === 'JOINED') {
+                            setSessionStatus('OFFLINE');
+                            setActiveSession(null);
+                            alert("Session Ended: Presence protocol terminated by instructor.");
+                        }
                         return;
                     }
 
-                    // We found a live session! Now listen to the session document itself
-                    const sessionRef = doc(db, 'batches', batchId, 'sessions', activeId);
+                    // Listen to root session doc
+                    const sessionRef = doc(db, 'sessions', activeId);
                     onSnapshot(sessionRef, (sSnap) => {
-                        if (sSnap.exists() && sSnap.data().isLive) {
+                        if (sSnap.exists() && sSnap.data().status === 'active') {
                             setLiveSessions(prev => ({
                                 ...prev,
                                 [batchId]: {
@@ -90,7 +86,6 @@ export const SessionProvider = ({ children }) => {
                                 }
                             }));
                         } else {
-                            // If session document says not live, also remove from banner
                             setLiveSessions(prev => {
                                 const next = { ...prev };
                                 delete next[batchId];
@@ -103,14 +98,13 @@ export const SessionProvider = ({ children }) => {
         });
 
         return () => unsubscribes.forEach(u => u());
-    }, [userDoc, activeSession?.batchId]); // Added activeSession to dependencies for kick-out logic
+    }, [userDoc, activeSession?.batchId, sessionStatus]);
 
-    // 🎓 STUDENT ACTION: Strict Spatial Join (Final Protocol)
     const joinSession = async (session) => {
         if (!session || !user) return;
 
         if (!navigator.geolocation) {
-            alert("Security Protocol Error: Hardware location service unavailable.");
+            alert("Protocol Violation: Hardware location services required.");
             return;
         }
 
@@ -119,60 +113,32 @@ export const SessionProvider = ({ children }) => {
                 const { latitude, longitude } = pos.coords;
                 const distance = getDistanceMeters(
                     latitude, longitude,
-                    session.center.lat, session.center.lng
+                    session.geoCenter.lat, session.geoCenter.lng
                 );
 
-                if (distance > session.radiusMeters) {
-                    alert("GEOFENCE BREACH: You are outside the allowed class radius of " + session.radiusMeters + "m.");
+                if (distance > session.radius) {
+                    alert(`GEOFENCE BREACH: You are ${Math.round(distance)}m away. Max radius is ${session.radius}m.`);
                     return;
                 }
 
-                const sessionRef = doc(db, "batches", session.batchId, "sessions", session.id);
-
-                // FINAL PROTOCOL: Update map-based students pool
-                await updateDoc(sessionRef, {
-                    [`students.${user.uid}`]: {
-                        lat: latitude,
-                        lng: longitude,
-                        insideRadius: true,
-                        joinedAt: serverTimestamp()
-                    }
+                // 📡 PRESENCE PROTOCOL: Write to session sub-collection
+                const presenceRef = doc(db, "sessions", session.id, "presence", user.uid);
+                await setDoc(presenceRef, {
+                    uid: user.uid,
+                    name: userDoc.name,
+                    lat: latitude,
+                    lng: longitude,
+                    insideRadius: true,
+                    joinedAt: serverTimestamp()
                 });
 
                 setActiveSession(session);
                 setSessionStatus('JOINED');
             } catch (err) {
-                console.error("Spatial Join Error:", err);
+                console.error("Presence registration failed:", err);
             }
-        }, (err) => {
-            alert("Geo-Auth Denied: Academic presence requires location authorization.");
-        }, { enableHighAccuracy: true });
+        }, null, { enableHighAccuracy: true });
     };
-
-    // 🔬 OPTIONAL STRONG: Continuous Spatial Monitoring (15s Heartbeat)
-    useEffect(() => {
-        let heartbeat;
-        if (sessionStatus === 'JOINED' && activeSession) {
-            heartbeat = setInterval(() => {
-                navigator.geolocation.getCurrentPosition(async (pos) => {
-                    const { latitude, longitude } = pos.coords;
-                    const distance = getDistanceMeters(
-                        latitude, longitude,
-                        activeSession.center.lat, activeSession.center.lng
-                    );
-                    const isInside = distance <= activeSession.radiusMeters;
-
-                    const sessionRef = doc(db, "batches", activeSession.batchId, "sessions", activeSession.id);
-                    await updateDoc(sessionRef, {
-                        [`students.${user.uid}.insideRadius`]: isInside,
-                        [`students.${user.uid}.lat`]: latitude,
-                        [`students.${user.uid}.lng`]: longitude
-                    });
-                }, null, { enableHighAccuracy: true });
-            }, 15000);
-        }
-        return () => clearInterval(heartbeat);
-    }, [sessionStatus, activeSession, user?.uid]);
 
     const leaveSession = () => {
         setSessionStatus('OFFLINE');
@@ -186,10 +152,9 @@ export const SessionProvider = ({ children }) => {
         <SessionContext.Provider value={{
             liveSessions,
             isAnyLive,
-            isTeacherLive: isAnyLive,
             sessionStatus,
             activeSession,
-            activeBatch: activeSession?.name || currentLiveSession?.name || 'Class Session',
+            activeBatch: activeSession?.name || currentLiveSession?.name || 'Academic Session',
             stats: { duration },
             joinSession,
             leaveSession

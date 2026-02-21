@@ -8,7 +8,6 @@ import {
 import {
     doc,
     onSnapshot,
-    getDoc,
     setDoc,
     serverTimestamp
 } from 'firebase/firestore';
@@ -44,31 +43,29 @@ export const AuthProvider = ({ children }) => {
             setUser(currentUser);
             const userRef = doc(db, 'users', currentUser.uid);
 
+            // REAL-TIME LISTENER (MANDATORY per protocol)
             const unsubscribeDoc = onSnapshot(userRef, async (docSnap) => {
                 if (!docSnap.exists()) {
-                    console.log("No user document found, creating one for:", currentUser.email);
+                    console.log("Protocol Initialized: Creating user entry...");
                     try {
                         await setDoc(userRef, {
                             uid: currentUser.uid,
                             email: currentUser.email,
-                            name: currentUser.displayName || currentUser.email.split('@')[0] || 'Scholar',
+                            name: currentUser.displayName || currentUser.email.split('@')[0],
                             photoURL: currentUser.photoURL || null,
-                            role: "student",
+                            role: "student", // Default role per protocol
                             assignedBatches: [],
                             createdAt: serverTimestamp()
                         });
-                        console.log("User document created successfully!");
                     } catch (err) {
-                        console.error("Error creating user document:", err);
-                        setLoading(false); // Stop spinner even on failure
+                        console.error("Entry creation failed:", err);
                     }
-                    return;
+                } else {
+                    setUserDoc(docSnap.data());
                 }
-
-                setUserDoc(docSnap.data());
                 setLoading(false);
             }, (error) => {
-                console.error("User document sync error:", error);
+                console.error("Auth Synchronizer error:", error);
                 setLoading(false);
             });
 
