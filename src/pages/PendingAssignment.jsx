@@ -11,7 +11,7 @@ const PendingAssignment = () => {
                     <Sparkles className="text-indigo-600" size={48} />
                 </div>
 
-                <h1 className="text-3xl font-black text-slate-800 mb-4">Almost There!</h1>
+                <h1 className="text-3xl font-black text-slate-800 mb-4 tracking-tighter uppercase">Pending Batch Assignment</h1>
                 <p className="text-slate-600 text-lg mb-8 leading-relaxed">
                     You've successfully joined <span className="font-bold text-indigo-600">NeoMinds Academy</span>.
                     Our admins are currently setting up your virtual classroom.
@@ -23,10 +23,10 @@ const PendingAssignment = () => {
                             <Info size={24} />
                         </div>
                         <div>
-                            <h3 className="font-bold text-slate-800 mb-1">Enrolled Batches</h3>
+                            <h3 className="font-bold text-slate-800 mb-1 tracking-tight">Accessing Your Curriculum</h3>
                             <p className="text-sm text-slate-500">
                                 Once an admin assigns you to a batch, you will see your courses, notes, and attendance tracking right here.
-                                Please check back soon or contact support if you believe there is a delay.
+                                This screen will automatically update in real-time.
                             </p>
                         </div>
                     </div>
@@ -37,7 +37,7 @@ const PendingAssignment = () => {
                         onClick={() => window.location.reload()}
                         className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200"
                     >
-                        Refresh Dashboard
+                        Check for Updates
                     </button>
                     <button
                         onClick={() => signOut(auth)}
@@ -47,10 +47,6 @@ const PendingAssignment = () => {
                         <span>Sign Out</span>
                     </button>
                 </div>
-
-                <p className="mt-12 text-sm text-slate-400 font-medium tracking-wide italic">
-                    "The future belongs to those who learn more skills."
-                </p>
             </div>
         </div>
     );

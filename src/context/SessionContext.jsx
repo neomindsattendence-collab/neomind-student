@@ -64,7 +64,7 @@ export const SessionProvider = ({ children }) => {
 
         setIsVerifying(true);
         navigator.geolocation.getCurrentPosition(
-            (position) => {
+            async (position) => {
                 const { latitude, longitude } = position.coords;
                 const distance = calculateDistance(
                     latitude, longitude,
@@ -75,10 +75,24 @@ export const SessionProvider = ({ children }) => {
                 const allowedRadius = (session.radius || 100) + 20;
 
                 if (distance <= allowedRadius) {
-                    setActiveSession(session);
-                    setSessionStatus('JOINED');
-                    setShowJoinModal(false);
-                    setLocationError(null);
+                    try {
+                        // Record check-in in Firestore
+                        const checkinRef = doc(db, "batches", session.batchId, "sessions", session.id, "checkins", user.uid);
+                        await setDoc(checkinRef, {
+                            uid: user.uid,
+                            name: userDoc?.name || user.email,
+                            timestamp: serverTimestamp(),
+                            distance: Math.round(distance)
+                        });
+
+                        setActiveSession(session);
+                        setSessionStatus('JOINED');
+                        setShowJoinModal(false);
+                        setLocationError(null);
+                    } catch (err) {
+                        console.error("Check-in error:", err);
+                        setLocationError("Security sync failed. Try again.");
+                    }
                 } else {
                     setLocationError(`Outside academic radius (${Math.round(distance)}m away)`);
                 }

@@ -1,7 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, db } from '../firebase/firebaseConfig';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db, googleProvider } from '../firebase/firebaseConfig';
+import {
+    onAuthStateChanged,
+    signInWithPopup,
+    signOut
+} from 'firebase/auth';
+import {
+    doc,
+    onSnapshot,
+    getDoc,
+    setDoc,
+    serverTimestamp
+} from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -10,26 +20,39 @@ export const AuthProvider = ({ children }) => {
     const [userDoc, setUserDoc] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const loginWithGoogle = async () => {
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            return result.user;
+        } catch (error) {
+            console.error("Login failed:", error);
+            throw error;
+        }
+    };
+
+    const logout = () => signOut(auth);
+
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
-            setUser(currentUser);
             if (currentUser) {
+                setUser(currentUser);
                 const userRef = doc(db, 'users', currentUser.uid);
 
-                // Ensure user doc exists
+                // Initial check and creation if missing
                 const userSnap = await getDoc(userRef);
                 if (!userSnap.exists()) {
                     await setDoc(userRef, {
                         uid: currentUser.uid,
                         email: currentUser.email,
                         name: currentUser.displayName || currentUser.email.split('@')[0],
-                        role: "student", // Default role
+                        photoURL: currentUser.photoURL,
+                        role: "student",
                         assignedBatches: [],
                         createdAt: serverTimestamp()
                     });
                 }
 
-                // Real-time listener for the user document
+                // Real-time synchronization
                 const unsubscribeDoc = onSnapshot(userRef, (docSnap) => {
                     if (docSnap.exists()) {
                         setUserDoc(docSnap.data());
@@ -39,6 +62,7 @@ export const AuthProvider = ({ children }) => {
 
                 return () => unsubscribeDoc();
             } else {
+                setUser(null);
                 setUserDoc(null);
                 setLoading(false);
             }
@@ -51,7 +75,11 @@ export const AuthProvider = ({ children }) => {
         user,
         userDoc,
         loading,
-        isStudent: userDoc?.role === 'student'
+        loginWithGoogle,
+        logout,
+        isStudent: userDoc?.role === 'student',
+        isTeacher: userDoc?.role === 'teacher',
+        isAdmin: userDoc?.role === 'admin'
     };
 
     return (
