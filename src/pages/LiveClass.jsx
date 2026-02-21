@@ -26,13 +26,15 @@ const LiveClass = () => {
         locationError,
         activeBatch,
         stats,
-        attemptJoin,
+        joinSession,
+        liveSessions,
         allowLocation,
         denyLocation,
         leaveSession
     } = useSession();
 
     const [timer, setTimer] = useState("00:00:00");
+    const activeSessionLive = Object.values(liveSessions)[0];
 
     useEffect(() => {
         if (sessionStatus === 'JOINED') {
@@ -59,13 +61,13 @@ const LiveClass = () => {
                         <div className="space-y-3">
                             <Badge variant="live" className="animate-pulse px-6 py-2">SESSION LIVE NOW</Badge>
                             <h2 className="text-4xl font-black text-slate-800 tracking-tighter">Class has started by your teacher</h2>
-                            <p className="text-slate-500 font-bold max-w-sm mx-auto leading-relaxed">Mastering Neural Networks is currently in progress. Please join immediately to mark your attendance.</p>
+                            <p className="text-slate-500 font-bold max-w-sm mx-auto leading-relaxed">{activeSessionLive?.name || 'Neural Networks'} is currently in progress. Please join immediately to mark your attendance.</p>
                         </div>
                         <Button
                             variant="primary"
                             size="lg"
                             className="rounded-3xl shadow-2xl shadow-indigo-200 group"
-                            onClick={() => attemptJoin('Mastering Neural Networks')}
+                            onClick={() => activeSessionLive && joinSession(activeSessionLive)}
                         >
                             Join Live Session <ArrowRight size={20} className="ml-3 group-hover:translate-x-1 transition-transform" />
                         </Button>

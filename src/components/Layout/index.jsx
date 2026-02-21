@@ -26,23 +26,29 @@ const Layout = ({ children }) => {
 
                 {/* Live Banner */}
                 {isTeacherLive && sessionStatus === 'OFFLINE' && (
-                    <div className="mx-4 sm:mx-10 mt-6 bg-slate-900 rounded-3xl p-6 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl animate-in slide-in-from-top-full duration-500 overflow-hidden relative">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-                        <div className="flex items-center space-x-6 relative z-10 w-full md:w-auto">
-                            <div className="p-4 bg-rose-500 text-white rounded-2xl live-pulse flex-shrink-0">
+                    <div className="mx-4 sm:mx-10 mt-6 bg-slate-900 rounded-3xl p-6 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl animate-in slide-in-from-top-full duration-500 overflow-visible relative">
+                        {/* Glow Layer - pointer-events-none essential */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none z-0"></div>
+
+                        <div className="flex items-center space-x-6 relative z-20 w-full md:w-auto">
+                            <div className="p-4 bg-rose-500 text-white rounded-2xl live-pulse flex-shrink-0 pointer-events-none">
                                 <Radio size={28} />
                             </div>
-                            <div>
+                            <div className="pointer-events-none">
                                 <h3 className="text-xl font-black tracking-tighter mb-1">Live Class Alert!</h3>
                                 <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest leading-relaxed">
-                                    Teacher started session for <span className="text-indigo-400 underline decoration-indigo-400/30 underline-offset-4">Neural Networks</span>
+                                    Teacher started session for <span className="text-indigo-400 underline decoration-indigo-400/30 underline-offset-4">{Object.values(liveSessions)[0]?.name || 'Neural Networks'}</span>
                                 </p>
                             </div>
                         </div>
+
                         <Button
                             variant="primary"
-                            className="relative z-10 w-full md:w-auto px-8 py-4 rounded-xl font-black uppercase tracking-widest text-[10px] group"
-                            onClick={() => attemptJoin('Mastering Neural Networks')}
+                            className="relative z-50 pointer-events-auto w-full md:w-auto px-8 py-4 rounded-xl font-black uppercase tracking-widest text-[10px] group shadow-2xl"
+                            onClick={() => {
+                                const activeSession = Object.values(liveSessions)[0];
+                                if (activeSession) joinSession(activeSession);
+                            }}
                         >
                             Join Class Now <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
                         </Button>

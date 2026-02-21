@@ -86,13 +86,15 @@ const Dashboard = () => {
         <div className="space-y-10 animate-in fade-in duration-700 pb-20">
             {/* Live Class Alert Banner */}
             {isAnyLive && sessionStatus === 'OFFLINE' && (
-                <div className="bg-rose-600 rounded-[2.5rem] p-8 text-white flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl shadow-rose-200 animate-in slide-in-from-top-10 duration-500 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-                    <div className="flex items-center space-x-8 relative z-10">
-                        <div className="p-5 bg-white/20 rounded-[2rem] live-pulse shadow-xl">
+                <div className="bg-rose-600 rounded-[2.5rem] p-8 text-white flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl shadow-rose-200 animate-in slide-in-from-top-10 duration-500 relative overflow-visible">
+                    {/* Glow/Decoration Layers - pointer-events-none essential */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none z-0"></div>
+
+                    <div className="flex items-center space-x-8 relative z-20">
+                        <div className="p-5 bg-white/20 rounded-[2rem] live-pulse shadow-xl pointer-events-none">
                             <Radio size={40} />
                         </div>
-                        <div>
+                        <div className="pointer-events-none">
                             <div className="flex items-center gap-3 mb-2">
                                 <span className="w-2 h-2 bg-white rounded-full animate-ping"></span>
                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 italic">Live Session Logic Initialized</p>
@@ -101,9 +103,10 @@ const Dashboard = () => {
                             <p className="text-xs font-black uppercase tracking-widest opacity-60 mt-1">Status: Lead Instructor Active</p>
                         </div>
                     </div>
+
                     <Button
                         variant="primary"
-                        className="bg-white text-rose-600 hover:bg-slate-50 border-none px-12 py-5 rounded-2x"
+                        className="bg-white text-rose-600 hover:bg-slate-50 border-none px-12 py-5 rounded-2xl relative z-50 pointer-events-auto shadow-2xl"
                         onClick={() => joinSession(activeBatchLive)}
                     >
                         Join Class Now
