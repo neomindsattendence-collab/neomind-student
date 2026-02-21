@@ -56,59 +56,99 @@ export const SessionProvider = ({ children }) => {
                     const batchData = snap.data();
                     const activeId = batchData.activeSessionId;
 
-                    if (activeId) {
-                        // We found a live session! Now listen to the session document itself
-                        const sessionRef = doc(db, 'batches', batchId, 'sessions', activeId);
-                        onSnapshot(sessionRef, (sSnap) => {
-                            if (sSnap.exists() && sSnap.data().isLive) {
-                                setLiveSessions(prev => ({
-                                    ...prev,
-                                    [batchId]: {
-                                        id: activeId,
-                                        batchId,
-                                        name: batchData.name,
-                                        ...sSnap.data()
-                                    }
-                                }));
-                            } else {
-                                setLiveSessions(prev => {
-                                    const next = { ...prev };
-                                    delete next[batchId];
-                                    return next;
-                                });
-                            }
-                        });
-                    } else {
+                    // 🔥 MANDATORY AUTO-EXIT: If this student is in a session for this batch,
+                    // but the batch no longer has an activeSessionId, kick them out.
+                    if (!activeId) {
                         setLiveSessions(prev => {
                             const next = { ...prev };
                             delete next[batchId];
                             return next;
                         });
+
+                        setSessionStatus(prev => {
+                            if (activeSession?.batchId === batchId && prev === 'JOINED') {
+                                alert("Class Session Ended: Academic data synchronized.");
+                                return 'OFFLINE';
+                            }
+                            return prev;
+                        });
+                        return;
                     }
+
+                    // We found a live session! Now listen to the session document itself
+                    const sessionRef = doc(db, 'batches', batchId, 'sessions', activeId);
+                    onSnapshot(sessionRef, (sSnap) => {
+                        if (sSnap.exists() && sSnap.data().isLive) {
+                            setLiveSessions(prev => ({
+                                ...prev,
+                                [batchId]: {
+                                    id: activeId,
+                                    batchId,
+                                    name: batchData.name,
+                                    ...sSnap.data()
+                                }
+                            }));
+                        } else {
+                            // If session document says not live, also remove from banner
+                            setLiveSessions(prev => {
+                                const next = { ...prev };
+                                delete next[batchId];
+                                return next;
+                            });
+                        }
+                    });
                 }
             });
         });
 
         return () => unsubscribes.forEach(u => u());
-    }, [userDoc]);
+    }, [userDoc, activeSession?.batchId]); // Added activeSession to dependencies for kick-out logic
 
-    // 🎓 STUDENT ACTION: Join Session Protocol
+    // 🎓 STUDENT ACTION: Spatial Join Protocol (Radar Support)
     const joinSession = async (session) => {
         if (!session || !user) return;
 
-        try {
-            const sessionRef = doc(db, "batches", session.batchId, "sessions", session.id);
-
-            // Mandatory update: add self to joinedStudents pool
-            await updateDoc(sessionRef, {
-                joinedStudents: arrayUnion(user.uid)
-            });
-
-            setActiveSession(session);
-            setSessionStatus('JOINED');
-        } catch (err) {
-            console.error("Join Protocol Error:", err);
+        if (!navigator.geolocation) {
+            alert("Operational Failure: GPS Hardware Required for Session Radar.");
+            return;
         }
+
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            try {
+                const { latitude, longitude } = pos.coords;
+                const sessionRef = doc(db, "batches", session.batchId, "sessions", session.id);
+                const checkinRef = doc(db, "batches", session.batchId, "sessions", session.id, "checkins", user.uid);
+
+                // Calculate spatial distance from instructor origin
+                const distance = calculateDistance(
+                    latitude, longitude,
+                    session.origin?.lat || 0, session.origin?.lng || 0
+                );
+
+                // 📡 BROADCAST SPATIAL DATA TO RADAR
+                await setDoc(checkinRef, {
+                    uid: user.uid,
+                    name: userDoc?.name || user.email,
+                    lat: latitude,
+                    lng: longitude,
+                    distance: Math.round(distance),
+                    timestamp: serverTimestamp(),
+                    status: distance <= (session.radius || 100) ? 'INSIDE' : 'OUTSIDE'
+                });
+
+                // Mandatory update: add self to joinedStudents pool (legacy compat + counters)
+                await updateDoc(sessionRef, {
+                    joinedStudents: arrayUnion(user.uid)
+                });
+
+                setActiveSession(session);
+                setSessionStatus('JOINED');
+            } catch (err) {
+                console.error("Join Spatial Protocol Error:", err);
+            }
+        }, (err) => {
+            alert("Geo-Auth Error: Academic radius link requires location authorization.");
+        }, { enableHighAccuracy: true });
     };
 
     const leaveSession = () => {
@@ -123,6 +163,7 @@ export const SessionProvider = ({ children }) => {
         <SessionContext.Provider value={{
             liveSessions,
             isAnyLive,
+            isTeacherLive: isAnyLive,
             sessionStatus,
             activeSession,
             activeBatch: activeSession?.name || currentLiveSession?.name || 'Class Session',
