@@ -6,7 +6,7 @@ import { Badge, Button } from '../Common';
 import { Radio, ArrowRight, X } from 'lucide-react';
 
 const Layout = ({ children }) => {
-    const { isTeacherLive, sessionStatus, attemptJoin, activeBatch } = useSession();
+    const { isTeacherLive, sessionStatus, joinSession, activeBatch, liveSessions } = useSession();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     return (
