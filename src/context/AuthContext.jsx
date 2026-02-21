@@ -33,14 +33,20 @@ export const AuthProvider = ({ children }) => {
     const logout = () => signOut(auth);
 
     useEffect(() => {
-        const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
-                const userRef = doc(db, 'users', currentUser.uid);
+        const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+            if (!currentUser) {
+                setUser(null);
+                setUserDoc(null);
+                setLoading(false);
+                return;
+            }
 
-                // Initial check and creation if missing
-                const userSnap = await getDoc(userRef);
-                if (!userSnap.exists()) {
+            setUser(currentUser);
+            const userRef = doc(db, 'users', currentUser.uid);
+
+            const unsubscribeDoc = onSnapshot(userRef, async (docSnap) => {
+                if (!docSnap.exists()) {
+                    // Create user document if missing
                     await setDoc(userRef, {
                         uid: currentUser.uid,
                         email: currentUser.email,
@@ -50,22 +56,14 @@ export const AuthProvider = ({ children }) => {
                         assignedBatches: [],
                         createdAt: serverTimestamp()
                     });
+                    return;
                 }
 
-                // Real-time synchronization
-                const unsubscribeDoc = onSnapshot(userRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        setUserDoc(docSnap.data());
-                    }
-                    setLoading(false);
-                });
-
-                return () => unsubscribeDoc();
-            } else {
-                setUser(null);
-                setUserDoc(null);
+                setUserDoc(docSnap.data());
                 setLoading(false);
-            }
+            });
+
+            return () => unsubscribeDoc();
         });
 
         return () => unsubscribeAuth();

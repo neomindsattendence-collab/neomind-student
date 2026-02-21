@@ -34,12 +34,6 @@ const PendingAssignment = () => {
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                     <button
-                        onClick={() => window.location.reload()}
-                        className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-200"
-                    >
-                        Check for Updates
-                    </button>
-                    <button
                         onClick={() => signOut(auth)}
                         className="flex items-center space-x-2 px-8 py-3 text-slate-500 hover:text-slate-800 font-bold transition-all"
                     >
