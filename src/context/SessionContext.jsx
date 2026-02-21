@@ -15,16 +15,17 @@ import { useAuth } from './AuthContext';
 
 const SessionContext = createContext();
 
-const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371000; // meters
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-};
+function getDistanceMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat1 * Math.PI / 180) *
+        Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 export const SessionProvider = ({ children }) => {
     const { user, userDoc } = useAuth();
@@ -104,52 +105,74 @@ export const SessionProvider = ({ children }) => {
         return () => unsubscribes.forEach(u => u());
     }, [userDoc, activeSession?.batchId]); // Added activeSession to dependencies for kick-out logic
 
-    // 🎓 STUDENT ACTION: Spatial Join Protocol (Radar Support)
+    // 🎓 STUDENT ACTION: Strict Spatial Join (Final Protocol)
     const joinSession = async (session) => {
         if (!session || !user) return;
 
         if (!navigator.geolocation) {
-            alert("Operational Failure: GPS Hardware Required for Session Radar.");
+            alert("Security Protocol Error: Hardware location service unavailable.");
             return;
         }
 
         navigator.geolocation.getCurrentPosition(async (pos) => {
             try {
                 const { latitude, longitude } = pos.coords;
-                const sessionRef = doc(db, "batches", session.batchId, "sessions", session.id);
-                const checkinRef = doc(db, "batches", session.batchId, "sessions", session.id, "checkins", user.uid);
-
-                // Calculate spatial distance from instructor origin
-                const distance = calculateDistance(
+                const distance = getDistanceMeters(
                     latitude, longitude,
-                    session.origin?.lat || 0, session.origin?.lng || 0
+                    session.center.lat, session.center.lng
                 );
 
-                // 📡 BROADCAST SPATIAL DATA TO RADAR
-                await setDoc(checkinRef, {
-                    uid: user.uid,
-                    name: userDoc?.name || user.email,
-                    lat: latitude,
-                    lng: longitude,
-                    distance: Math.round(distance),
-                    timestamp: serverTimestamp(),
-                    status: distance <= (session.radius || 100) ? 'INSIDE' : 'OUTSIDE'
-                });
+                if (distance > session.radiusMeters) {
+                    alert("GEOFENCE BREACH: You are outside the allowed class radius of " + session.radiusMeters + "m.");
+                    return;
+                }
 
-                // Mandatory update: add self to joinedStudents pool (legacy compat + counters)
+                const sessionRef = doc(db, "batches", session.batchId, "sessions", session.id);
+
+                // FINAL PROTOCOL: Update map-based students pool
                 await updateDoc(sessionRef, {
-                    joinedStudents: arrayUnion(user.uid)
+                    [`students.${user.uid}`]: {
+                        lat: latitude,
+                        lng: longitude,
+                        insideRadius: true,
+                        joinedAt: serverTimestamp()
+                    }
                 });
 
                 setActiveSession(session);
                 setSessionStatus('JOINED');
             } catch (err) {
-                console.error("Join Spatial Protocol Error:", err);
+                console.error("Spatial Join Error:", err);
             }
         }, (err) => {
-            alert("Geo-Auth Error: Academic radius link requires location authorization.");
+            alert("Geo-Auth Denied: Academic presence requires location authorization.");
         }, { enableHighAccuracy: true });
     };
+
+    // 🔬 OPTIONAL STRONG: Continuous Spatial Monitoring (15s Heartbeat)
+    useEffect(() => {
+        let heartbeat;
+        if (sessionStatus === 'JOINED' && activeSession) {
+            heartbeat = setInterval(() => {
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    const distance = getDistanceMeters(
+                        latitude, longitude,
+                        activeSession.center.lat, activeSession.center.lng
+                    );
+                    const isInside = distance <= activeSession.radiusMeters;
+
+                    const sessionRef = doc(db, "batches", activeSession.batchId, "sessions", activeSession.id);
+                    await updateDoc(sessionRef, {
+                        [`students.${user.uid}.insideRadius`]: isInside,
+                        [`students.${user.uid}.lat`]: latitude,
+                        [`students.${user.uid}.lng`]: longitude
+                    });
+                }, null, { enableHighAccuracy: true });
+            }, 15000);
+        }
+        return () => clearInterval(heartbeat);
+    }, [sessionStatus, activeSession, user?.uid]);
 
     const leaveSession = () => {
         setSessionStatus('OFFLINE');
