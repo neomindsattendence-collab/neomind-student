@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase/firebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, orderBy, query } from 'firebase/firestore';
 import { Skeleton, EmptyState, Card, Badge, Button } from '../components/Common';
 
 const MyBatches = () => {
@@ -18,6 +18,8 @@ const MyBatches = () => {
     const [batchesData, setBatchesData] = useState([]);
     const [activeBatchId, setActiveBatchId] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [attendanceLogs, setAttendanceLogs] = useState([]);
+    const [loadingAttendance, setLoadingAttendance] = useState(false);
 
     useEffect(() => {
         const fetchBatches = async () => {
@@ -39,6 +41,24 @@ const MyBatches = () => {
         };
         fetchBatches();
     }, [userDoc]);
+
+    useEffect(() => {
+        const fetchAttendance = async () => {
+            if (!activeBatchId) return;
+            setLoadingAttendance(true);
+            try {
+                const q = query(collection(db, `batches/${activeBatchId}/attendance`), orderBy('date', 'desc'));
+                const snap = await getDocs(q);
+                const logs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setAttendanceLogs(logs);
+            } catch (err) {
+                console.error("Attendance fetch error:", err);
+            } finally {
+                setLoadingAttendance(false);
+            }
+        };
+        fetchAttendance();
+    }, [activeBatchId]);
 
     const activeBatch = batchesData.find(b => b.id === activeBatchId);
 
@@ -148,6 +168,43 @@ const MyBatches = () => {
                             <Button variant="secondary" className="w-full text-[10px] font-black uppercase border-2 rounded-xl">Sync Analytics</Button>
                         </Card>
                     </div>
+
+                    <Card title="Attendance Registry" subtitle="Verified session participation logs">
+                        {loadingAttendance ? (
+                            <div className="space-y-4 pt-4">
+                                <Skeleton className="h-16 rounded-2xl" />
+                                <Skeleton className="h-16 rounded-2xl" />
+                            </div>
+                        ) : attendanceLogs.length > 0 ? (
+                            <div className="space-y-4 pt-4 px-2">
+                                {attendanceLogs.map((log) => {
+                                    const isPresent = log.students?.includes(userDoc.uid);
+                                    return (
+                                        <div key={log.id} className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-indigo-200 transition-all">
+                                            <div className="flex items-center space-x-4">
+                                                <div className={`p-3 rounded-xl ${isPresent ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                                                    <Clock size={16} />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-black text-slate-800 uppercase tracking-tighter">Session ID: {log.sessionId.slice(0, 8)}</p>
+                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-1">
+                                                        {log.date?.toDate().toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <Badge variant={isPresent ? 'success' : 'danger'}>
+                                                {isPresent ? 'Present' : 'Absent'}
+                                            </Badge>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="py-10 text-center text-slate-400 text-xs font-bold uppercase italic">
+                                No attendance records found for this unit.
+                            </div>
+                        )}
+                    </Card>
                 </div>
 
                 <div className="space-y-8">

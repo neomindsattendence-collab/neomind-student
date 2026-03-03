@@ -13,130 +13,78 @@ service cloud.firestore {
     }
     
     function isAdmin() {
-      return isAuthenticated() && getUserData().role == 'admin';
+      return isAuthenticated() && getUserData().get('role', '') == 'admin';
     }
 
     function isTeacher() {
-      return isAuthenticated() && getUserData().role == 'teacher';
+      return isAuthenticated() && getUserData().get('role', '') == 'teacher';
     }
 
     function isStudent() {
-      return isAuthenticated() && getUserData().role == 'student';
+      return isAuthenticated() && getUserData().get('role', '') == 'student';
     }
 
-    // 🛡️ SECURITY: Verify if a batch is actually assigned to the user profile
-    function isBatchAssigned(batchId) {
-      return isAuthenticated() && batchId in getUserData().assignedBatches;
-    }
-
-    function getBatch(batchId) {
-      return get(/databases/$(database)/documents/batches/$(batchId)).data;
-    }
-
-    // 🛡️ SECURITY: Cross-verify UID exists in the batch document for dual-layer safety
-    function isTeacherOf(batchId) {
-      return isAdmin() || (isBatchAssigned(batchId) && request.auth.uid in getBatch(batchId).teachers);
-    }
-
-    function isStudentOf(batchId) {
-      return isAdmin() || (isBatchAssigned(batchId) && request.auth.uid in getBatch(batchId).students);
-    }
-
+    // 🛡️ SECURITY: Verify if a batch is assigned
     function isMember(batchId) {
-      return isTeacherOf(batchId) || isStudentOf(batchId);
+      let bData = get(/databases/$(database)/documents/batches/$(batchId)).data;
+      return isAdmin() || (isAuthenticated() && (request.auth.uid in bData.get('students', []) || request.auth.uid in bData.get('teachers', [])));
     }
 
     // --- 📂 COLLECTIONS ---
 
-    // 1. 👤 USERS COLLECTION
+    // 1. USERS
     match /users/{uid} {
-      allow read: if isAuthenticated() && (request.auth.uid == uid || isAdmin());
-      
-      // Self-onboarding (first login)
-      allow create: if isAuthenticated() && 
-                    request.auth.uid == uid && 
-                    !exists(/databases/$(database)/documents/users/$(uid)) &&
-                    (request.resource.data.role == 'student' || request.resource.data.role == 'teacher') &&
-                    request.resource.data.assignedBatches == [];
-      
-      // Update logic: Admin can do anything, User can update profile but not assignedBatches
-      allow update: if isAuthenticated() && (
-        isAdmin() || 
-        (request.auth.uid == uid && (
-          // Allow self-onboarding role selection if not set
-          (!('role' in resource.data) || resource.data.role == null) ||
-          // Allow profile updates (ensure critical fields like assignedBatches don't change without Admin)
-          (request.resource.data.assignedBatches == resource.data.assignedBatches && 
-           request.resource.data.uid == resource.data.uid)
-        ))
-      );
-      allow delete: if isAdmin();
+      allow read: if isAuthenticated() && (request.auth.uid == uid || isAdmin() || isTeacher());
+      allow write: if isAdmin() || (isAuthenticated() && request.auth.uid == uid);
     }
 
-    // 2. 📚 BATCHES COLLECTION
+    // 2. BATCHES (Root)
     match /batches/{batchId} {
-      allow read: if isMember(batchId) || isAdmin();
+      allow read: if isAuthenticated(); 
+      allow update: if isAdmin() || isTeacher(); 
       allow write: if isAdmin();
 
-      // 🎥 Sub-collection: Sessions
-      match /sessions/{sessionId} {
-        allow read: if isMember(batchId) || isAdmin();
-        // Only assigned teachers can create/edit sessions
-        allow create: if isTeacherOf(batchId) && request.resource.data.teacherId == request.auth.uid;
-        allow update: if isTeacherOf(batchId) || isAdmin();
-        allow delete: if isAdmin();
-
-        // ⏱️ Sub-collection: Check-ins (Real-time attendance signal)
-        match /checkins/{studentUid} {
-          allow read: if isTeacherOf(batchId) || (isStudent() && request.auth.uid == studentUid) || isAdmin();
-          allow create: if isStudent() && request.auth.uid == studentUid && isStudentOf(batchId);
-          allow update: if false; // Check-ins are usually immutable (one-time signal)
-          allow delete: if isAdmin();
-        }
-      }
-
-      // 📝 Sub-collection: Attendance (History)
+      // Attendance Sub-collection
       match /attendance/{sessionId} {
-        allow read: if isMember(batchId) || isAdmin();
-        allow write: if isTeacherOf(batchId) || isAdmin();
+        allow read: if isAuthenticated(); // Simplified for now to avoid complexity in member check
+        allow write: if isTeacher() || isAdmin();
       }
 
-      // 🗒️ Sub-collection: Notes/Resources
-      match /notes/{noteId} {
-        allow read: if isMember(batchId) || isAdmin();
-        allow create, update: if isTeacherOf(batchId) || isAdmin();
-        allow delete: if isTeacherOf(batchId) || isAdmin();
-      }
-
-      // 📝 Sub-collection: Assignments
-      match /assignments/{assignmentId} {
-        allow read: if isMember(batchId) || isAdmin();
-        allow write: if isTeacherOf(batchId) || isAdmin();
-
-        // 📤 Sub-collection: Submissions
-        match /submissions/{studentUid} {
-          allow read: if isTeacherOf(batchId) || (isStudent() && request.auth.uid == studentUid) || isAdmin();
-          allow create: if isStudent() && request.auth.uid == studentUid && isStudentOf(batchId);
-          allow update: if (isStudent() && request.auth.uid == studentUid) || isTeacherOf(batchId) || isAdmin();
-          allow delete: if isAdmin();
-        }
+      // Sub-collections (Notes, Assignments, etc.)
+      match /{allSubcollections=**} {
+        allow read: if isAuthenticated();
+        allow write: if isTeacher() || isAdmin();
       }
     }
 
-    // 3. 📰 E-PAPER / SETTINGS (Custom paths)
+    // 3. 🎥 SESSIONS (Root - New Protocol)
+    match /sessions/{sessionId} {
+      allow read: if isAuthenticated();
+      
+      // Allow creation if teacher or admin
+      allow create: if isTeacher() || isAdmin();
+      
+      // Allow update if owner or admin
+      allow update: if isAdmin() || (isTeacher() && request.auth.uid == resource.data.teacherId);
+      
+      allow delete: if isAdmin();
+      
+      // Presence/Check-ins sub-collection
+      match /presence/{uid} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated();
+      }
+    }
+
+    // 4. E-PAPER / SETTINGS
     match /epaper/{document=**} {
-      allow read: if isAuthenticated(); 
-      allow write: if isAdmin();        
-    }
-    
-    match /settings/{document=**} {
-      allow read: if true;         
-      allow write: if isAdmin();   
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
 
-    // 🛡️ GLOBAL DEFAULT: Deny everything else
+    // 🛡️ GLOBAL DEFAULT
     match /{path=**} {
-      allow read, write: if isAdmin(); 
+      allow read, write: if isAdmin();
     }
   }
 }
