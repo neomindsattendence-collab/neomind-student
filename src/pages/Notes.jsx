@@ -11,6 +11,7 @@ import { Card, Button, Badge } from '../components/Common';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase/firebaseConfig';
 import { collection, query, onSnapshot, orderBy, getDoc, doc } from 'firebase/firestore';
+import { forceDownload, openFile } from '../services/fileService';
 
 const Notes = () => {
     const { userDoc } = useAuth();
@@ -138,11 +139,24 @@ const Notes = () => {
                             </div>
                             <div className="mt-8 pt-6 border-t border-slate-50 flex gap-3">
                                 {note.fileUrl ? (
-                                    <a href={note.fileUrl} target="_blank" rel="noreferrer" className="w-full">
-                                        <Button variant="primary" className="w-full text-[10px] uppercase font-black tracking-widest py-3 shadow-lg shadow-indigo-100">
-                                            <ExternalLink size={14} className="mr-2" /> Open Material
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="secondary"
+                                            className="flex-1 py-3 text-xs font-black uppercase tracking-widest flex items-center justify-center space-x-2"
+                                            onClick={() => openFile(note.fileUrl)}
+                                        >
+                                            <Eye size={16} />
+                                            <span>View</span>
                                         </Button>
-                                    </a>
+                                        <Button
+                                            variant="primary"
+                                            className="flex-1 py-3 text-xs font-black uppercase tracking-widest flex items-center justify-center space-x-2"
+                                            onClick={() => forceDownload(note.fileUrl, `${note.title}.pdf`)}
+                                        >
+                                            <Download size={16} />
+                                            <span>Download</span>
+                                        </Button>
+                                    </div>
                                 ) : (
                                     <Button variant="ghost" className="w-full cursor-not-allowed opacity-50">
                                         No Payload

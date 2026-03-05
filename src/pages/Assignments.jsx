@@ -11,7 +11,8 @@ import {
     FileBox,
     Plus,
     UploadCloud,
-    ExternalLink
+    Download,
+    Eye
 } from 'lucide-react';
 import { Card, Button, Badge, Modal, Input } from '../components/Common';
 import { useAuth } from '../context/AuthContext';
@@ -28,6 +29,7 @@ import {
     where
 } from 'firebase/firestore';
 import { uploadToCloudinary } from '../services/cloudinaryService';
+import { forceDownload, openFile } from '../services/fileService';
 
 const Assignments = () => {
     const { user, userDoc } = useAuth();
@@ -98,10 +100,17 @@ const Assignments = () => {
 
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
-        if (file && file.type === "application/pdf") {
-            setSelectedFile(file);
-        } else {
-            alert("Security Protocol: Only PDF files are permitted for technical submissions.");
+        if (file) {
+            console.log("Student Submission Selection:", file);
+            if (file.size === 0) {
+                alert("Security Breach: Attempted upload of 0-byte binary. Operation Refused.");
+                return;
+            }
+            if (file.type === "application/pdf") {
+                setSelectedFile(file);
+            } else {
+                alert("Security Protocol: Only PDF files are permitted for technical submissions.");
+            }
         }
     };
 
@@ -114,6 +123,16 @@ const Assignments = () => {
 
         setIsSubmitting(true);
         try {
+            console.log("Synchronizing Student Submission Payload:", {
+                name: selectedFile.name,
+                size: selectedFile.size,
+                type: selectedFile.type
+            });
+
+            if (selectedFile.size === 0) {
+                throw new Error("Empty technical payload detected. Protocol aborted.");
+            }
+
             // 1. Upload to Cloudinary
             const fileData = await uploadToCloudinary(selectedFile);
 
@@ -183,9 +202,22 @@ const Assignments = () => {
                                 </div>
                                 <div className="flex gap-2">
                                     {submission && (
-                                        <a href={submission.fileUrl} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-xl transition-all">
-                                            <ExternalLink size={16} />
-                                        </a>
+                                        <>
+                                            <button
+                                                onClick={() => openFile(submission.fileUrl)}
+                                                className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-xl transition-all"
+                                                title="View Submission"
+                                            >
+                                                <Eye size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => forceDownload(submission.fileUrl, `Submission_${task.title}.pdf`)}
+                                                className="p-2 bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-xl transition-all"
+                                                title="Download Submission"
+                                            >
+                                                <Download size={16} />
+                                            </button>
+                                        </>
                                     )}
                                     <Badge variant={submission ? 'success' : 'warning'}>{submission ? 'Submitted' : 'Pending'}</Badge>
                                 </div>
@@ -213,6 +245,24 @@ const Assignments = () => {
                                         </div>
                                     </div>
                                 </div>
+                                {task.fileUrl && (
+                                    <div className="flex gap-2 mt-4 text-[10px] font-black uppercase tracking-widest">
+                                        <button
+                                            onClick={() => openFile(task.fileUrl)}
+                                            className="flex-1 flex items-center justify-center space-x-2 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-all border border-blue-100"
+                                        >
+                                            <Eye size={14} />
+                                            <span>View Prompt</span>
+                                        </button>
+                                        <button
+                                            onClick={() => forceDownload(task.fileUrl, `Assignment_${task.title}.pdf`)}
+                                            className="flex-1 flex items-center justify-center space-x-2 py-3 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-all border border-indigo-100"
+                                        >
+                                            <Download size={14} />
+                                            <span>Download</span>
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mt-8">
