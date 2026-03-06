@@ -118,7 +118,7 @@ const Dashboard = () => {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                 <div>
                     <Badge variant="blue" className="px-5 py-2 mb-4">Unit Protocol v2.5 Online</Badge>
-                    <h1 className="text-6xl font-black text-slate-800 tracking-tighter leading-none">
+                    <h1 className="text-4xl md:text-6xl font-black text-slate-800 tracking-tighter leading-none">
                         Hello, <span className="text-indigo-600">{userDoc?.name?.split(' ')[0] || 'Scholar'}</span>
                     </h1>
                     <p className="text-slate-400 font-black mt-3 uppercase tracking-[0.2em] text-[10px] italic">Accessing your neural academy dashboard</p>

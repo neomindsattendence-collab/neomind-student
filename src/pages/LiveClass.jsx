@@ -60,7 +60,7 @@ const LiveClass = () => {
                     <div className="space-y-8">
                         <div className="space-y-3">
                             <Badge variant="live" className="animate-pulse px-6 py-2">SESSION LIVE NOW</Badge>
-                            <h2 className="text-4xl font-black text-slate-800 tracking-tighter">Class has started by your teacher</h2>
+                            <h2 className="text-2xl md:text-4xl font-black text-slate-800 tracking-tighter">Class has started by your teacher</h2>
                             <p className="text-slate-500 font-bold max-w-sm mx-auto leading-relaxed">{activeSessionLive?.name || 'Neural Networks'} is currently in progress. Please join immediately to mark your attendance.</p>
                         </div>
                         <Button
@@ -75,7 +75,7 @@ const LiveClass = () => {
                 ) : (
                     <div className="space-y-6">
                         <div className="space-y-2">
-                            <h2 className="text-4xl font-black text-slate-800 tracking-tighter">No Active Sessions</h2>
+                            <h2 className="text-2xl md:text-4xl font-black text-slate-800 tracking-tighter">No Active Sessions</h2>
                             <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Waiting for instructor heartbeat...</p>
                         </div>
                         <Card className="bg-slate-50 border-dashed border-2 p-10 max-w-md mx-auto">
@@ -126,7 +126,7 @@ const LiveClass = () => {
                             <Badge variant="success">LOCATION VERIFIED</Badge>
                             <span className="text-white/40 font-black text-xl tabular-nums tracking-widest">{timer}</span>
                         </div>
-                        <h2 className="text-4xl font-black tracking-tighter line-clamp-1">{activeBatch}</h2>
+                        <h2 className="text-2xl md:text-4xl font-black tracking-tighter line-clamp-1">{activeBatch}</h2>
                         <p className="text-indigo-300 font-bold text-sm uppercase tracking-widest mt-1">Live Technical Unit • Dr. Irfan Malik</p>
                     </div>
                 </div>

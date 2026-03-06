@@ -11,7 +11,7 @@ export const Card = ({ children, className = '', title, subtitle, ...props }) =>
                 </div>
             </div>
         )}
-        <div className="p-8">
+        <div className="p-6 sm:p-8">
             {children}
         </div>
     </div>
@@ -89,7 +89,7 @@ export const Modal = ({ isOpen, onClose, title, children }) => {
                         <X size={20} />
                     </button>
                 </div>
-                <div className="p-8">
+                <div className="p-6 sm:p-8">
                     {children}
                 </div>
             </div>
