@@ -86,30 +86,34 @@ const Dashboard = () => {
         <div className="space-y-10 animate-in fade-in duration-700 pb-20">
             {/* Live Class Alert Banner */}
             {isAnyLive && sessionStatus === 'OFFLINE' && (
-                <div className="bg-rose-600 rounded-[2.5rem] p-8 text-white flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl shadow-rose-200 animate-in slide-in-from-top-10 duration-500 relative overflow-visible">
-                    {/* Glow/Decoration Layers - pointer-events-none essential */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none z-0"></div>
+                <div className="bg-gradient-to-br from-rose-500 to-rose-700 rounded-[2.5rem] p-10 text-white flex flex-col md:flex-row justify-between items-center gap-10 shadow-[0_20px_50px_rgba(225,29,72,0.3)] animate-in slide-in-from-top-10 duration-700 relative overflow-hidden group">
+                    {/* Dynamic Glow Layers */}
+                    <div className="absolute -top-20 -right-20 w-80 h-80 bg-white/10 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000"></div>
+                    <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-rose-400/20 rounded-full blur-[80px] pointer-events-none transition-transform duration-1000"></div>
 
-                    <div className="flex items-center space-x-8 relative z-20">
-                        <div className="p-5 bg-white/20 rounded-[2rem] live-pulse shadow-xl pointer-events-none">
-                            <Radio size={40} />
+                    <div className="flex items-center space-x-10 relative z-20 w-full md:w-auto">
+                        <div className="p-6 bg-white/20 rounded-[2.5rem] live-pulse shadow-2xl backdrop-blur-md border border-white/20 pointer-events-none">
+                            <Radio size={48} className="text-white drop-shadow-lg" />
                         </div>
                         <div className="pointer-events-none">
-                            <div className="flex items-center gap-3 mb-2">
-                                <span className="w-2 h-2 bg-white rounded-full animate-ping"></span>
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 italic">Live Session Logic Initialized</p>
+                            <div className="flex items-center gap-3 mb-3">
+                                <span className="w-2.5 h-2.5 bg-white rounded-full animate-ping"></span>
+                                <p className="text-[11px] font-black uppercase tracking-[0.3em] opacity-90 italic drop-shadow-md">Live Session Logic Initialized</p>
                             </div>
-                            <h3 className="text-3xl font-black tracking-tighter">{activeBatchLive?.name}</h3>
-                            <p className="text-xs font-black uppercase tracking-widest opacity-60 mt-1">Status: Lead Instructor Active</p>
+                            <h3 className="text-4xl md:text-5xl font-black tracking-tighter leading-none mb-2 drop-shadow-2xl">{activeBatchLive?.name}</h3>
+                            <div className="flex items-center gap-2 mt-2">
+                                <Badge variant="live" className="px-4 py-1.5 !bg-white/10 border-white/10 text-white text-[9px]">ENCRYPTED STREAM</Badge>
+                                <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Status: Lead Instructor Active</p>
+                            </div>
                         </div>
                     </div>
 
                     <Button
-                        variant="primary"
-                        className="bg-white text-rose-600 hover:bg-slate-50 border-none px-12 py-5 rounded-2xl relative z-50 pointer-events-auto shadow-2xl"
+                        variant="secondary"
+                        className="!bg-white !text-rose-600 hover:scale-105 active:scale-95 border-none px-14 py-6 rounded-2xl relative z-50 pointer-events-auto shadow-[0_15px_30px_rgba(255,255,255,0.2)] font-black text-sm transition-all duration-300 group/btn"
                         onClick={() => joinSession(activeBatchLive)}
                     >
-                        Join Class Now
+                        Join Class Now <ArrowRight size={20} className="ml-3 group-hover/btn:translate-x-1 transition-transform" />
                     </Button>
                 </div>
             )}
