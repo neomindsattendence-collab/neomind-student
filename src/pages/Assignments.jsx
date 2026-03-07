@@ -163,121 +163,126 @@ const Assignments = () => {
     const submittedCount = Object.keys(submissions).length;
 
     return (
-        <div className="space-y-10 animate-in fade-in duration-700">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 text-center lg:text-left">
+        <div className="space-y-12 animate-in fade-in duration-1000 pb-20">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-800 tracking-tighter leading-none">Task Hub</h1>
-                    <p className="text-slate-500 font-bold mt-2 uppercase tracking-widest text-[10px]">Manage your technical submissions & deadlines</p>
+                    <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-none uppercase italic">Task Hub</h1>
+                    <p className="text-slate-500 font-bold mt-4 uppercase tracking-[0.3em] text-[10px] italic">Manage your technical submissions & deadlines</p>
                 </div>
             </div>
 
-            <Card className="bg-slate-900 border-none text-white p-10 overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-600/20 rounded-full -mr-40 -mt-40 blur-3xl"></div>
-                <div className="flex flex-col md:flex-row items-center justify-between gap-10 relative z-10">
-                    <div className="space-y-4 text-left">
-                        <Badge variant="blue" className="bg-indigo-600/30 text-white border-white/20">Task Progress</Badge>
-                        <h2 className="text-4xl font-black tracking-tighter leading-none">Stay Ahead. <br /> Finish your pending tasks.</h2>
+            <Card className="bg-black border border-white/5 text-white p-12 overflow-hidden relative shadow-[0_20px_50px_rgba(0,0,0,0.5)] group">
+                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-orange-600/10 rounded-full translate-x-1/2 -translate-y-1/2 blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000"></div>
+                <div className="flex flex-col md:flex-row items-center justify-between gap-12 relative z-10">
+                    <div className="space-y-6 text-left">
+                        <Badge variant="warning" className="px-6 py-2 tracking-[0.2em] font-black italic">TASK FREQUENCY PROTOCOL</Badge>
+                        <h2 className="text-4xl md:text-5xl font-black tracking-tighter leading-none uppercase italic">Stay Ahead. <br /><span className="text-orange-500">Synchronize</span> your pending tasks.</h2>
                     </div>
-                    <div className="flex gap-4">
-                        <div className="text-center bg-white/5 p-6 rounded-[2.5rem] border border-white/10 backdrop-blur-md">
-                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Pending</p>
-                            <p className="text-4xl font-black tabular-nums">{pendingCount}</p>
+                    <div className="flex gap-6">
+                        <div className="text-center bg-white/[0.03] p-8 rounded-[3rem] border border-white/5 backdrop-blur-3xl shadow-2xl relative overflow-hidden group/item">
+                            <div className="absolute inset-0 bg-gradient-to-br from-orange-600/5 to-transparent pointer-events-none"></div>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3 italic relative z-10">Active Flux</p>
+                            <p className="text-5xl font-black tabular-nums text-white italic relative z-10">{pendingCount}</p>
                         </div>
-                        <div className="text-center bg-white/5 p-6 rounded-[2.5rem] border border-white/10 backdrop-blur-md">
-                            <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">Completed</p>
-                            <p className="text-4xl font-black tabular-nums">{submittedCount}</p>
+                        <div className="text-center bg-white/[0.03] p-8 rounded-[3rem] border border-white/5 backdrop-blur-3xl shadow-2xl relative overflow-hidden group/item">
+                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/5 to-transparent pointer-events-none"></div>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3 italic relative z-10">Archived</p>
+                            <p className="text-5xl font-black tabular-nums text-emerald-500 italic relative z-10">{submittedCount}</p>
                         </div>
                     </div>
                 </div>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 {assignments.map((task) => {
                     const submission = submissions[task.id];
                     return (
-                        <Card key={task.id} className="group hover:border-indigo-400 transition-all duration-300 shadow-xl shadow-indigo-500/5 h-fit flex flex-col">
-                            <div className="flex justify-between items-start mb-6">
-                                <div className="p-3 bg-slate-100 text-slate-500 rounded-2xl group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all">
-                                    <ClipboardCheck size={24} />
+                        <Card key={task.id} className="group hover:border-orange-500/30 transition-all duration-700 shadow-none border border-white/5 bg-white/[0.02] p-10 h-fit flex flex-col relative overflow-hidden">
+                            <div className="absolute -right-8 -top-8 p-10 opacity-[0.02] group-hover:opacity-[0.05] group-hover:rotate-6 transition-all duration-1000">
+                                <ClipboardCheck size={200} className="text-orange-500" />
+                            </div>
+                            <div className="flex justify-between items-start mb-8 relative z-10">
+                                <div className="p-4 bg-white/[0.03] text-slate-500 rounded-2xl group-hover:bg-orange-600 group-hover:text-white group-hover:border-orange-500 border border-white/5 transition-all duration-700 shadow-inner italic">
+                                    <ClipboardCheck size={28} />
                                 </div>
-                                <div className="flex gap-2">
+                                <div className="flex gap-3">
                                     {submission && (
                                         <>
                                             <button
                                                 onClick={() => openFile(submission.fileUrl)}
-                                                className="p-2 bg-slate-50 text-slate-400 hover:text-blue-600 rounded-xl transition-all"
+                                                className="p-3 bg-white/[0.05] text-slate-500 hover:text-white rounded-xl transition-all duration-500 border border-white/5 shadow-xl italic"
                                                 title="View Submission"
                                             >
-                                                <Eye size={16} />
+                                                <Eye size={18} />
                                             </button>
                                             <button
                                                 onClick={() => forceDownload(submission.fileUrl, `Submission_${task.title}.pdf`)}
-                                                className="p-2 bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-xl transition-all"
+                                                className="p-3 bg-white/[0.05] text-slate-500 hover:text-white rounded-xl transition-all duration-500 border border-white/5 shadow-xl italic"
                                                 title="Download Submission"
                                             >
-                                                <Download size={16} />
+                                                <Download size={18} />
                                             </button>
                                         </>
                                     )}
-                                    <Badge variant={submission ? 'success' : 'warning'}>{submission ? 'Submitted' : 'Pending'}</Badge>
+                                    <Badge variant={submission ? 'success' : 'warning'} className="px-5 py-2 uppercase tracking-widest">{submission ? 'SYNCED' : 'PENDING'}</Badge>
                                 </div>
                             </div>
 
-                            <div className="flex-1">
-                                <h4 className="text-2xl font-black text-slate-800 tracking-tighter group-hover:text-indigo-600 transition-colors uppercase">{task.title}</h4>
-                                <div className="flex items-center gap-3 mt-2">
-                                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{task.batchName}</span>
+                            <div className="flex-1 relative z-10">
+                                <h4 className="text-3xl font-black text-white tracking-tighter group-hover:text-orange-500 transition-all duration-700 uppercase italic leading-none">{task.title}</h4>
+                                <div className="flex items-center gap-3 mt-4">
+                                    <span className="text-[10px] font-black text-orange-600 uppercase tracking-[0.3em] italic">{task.batchName}</span>
                                 </div>
 
-                                <div className="mt-8 grid grid-cols-2 gap-6 p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                                    <div className="flex items-center space-x-3 text-slate-500">
-                                        <Clock size={16} />
+                                <div className="mt-10 grid grid-cols-2 gap-8 p-8 bg-white/[0.03] rounded-[2rem] border border-white/5 shadow-inner">
+                                    <div className="flex items-center space-x-4 text-slate-500 italic">
+                                        <div className="p-2.5 bg-white/[0.05] rounded-xl border border-white/5"><Clock size={16} className="text-orange-500" /></div>
                                         <div className="leading-tight">
-                                            <p className="text-[9px] font-black uppercase opacity-60">Due Date</p>
-                                            <p className="text-xs font-black">{task.dueDate}</p>
+                                            <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Frequency End</p>
+                                            <p className="text-xs font-black text-white mt-1 tabular-nums">{task.dueDate}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center space-x-3 text-slate-500">
-                                        <MonitorCheck size={16} />
+                                    <div className="flex items-center space-x-4 text-slate-500 italic">
+                                        <div className="p-2.5 bg-white/[0.05] rounded-xl border border-white/5"><MonitorCheck size={16} className="text-emerald-500" /></div>
                                         <div className="leading-tight">
-                                            <p className="text-[9px] font-black uppercase opacity-60">Result</p>
-                                            <p className="text-xs font-black">{submission?.grade || 'Evaluator Idle'}</p>
+                                            <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Terminal Grade</p>
+                                            <p className="text-xs font-black text-white mt-1 uppercase tracking-widest">{submission?.grade || 'Awaiting Evaluator'}</p>
                                         </div>
                                     </div>
                                 </div>
                                 {task.fileUrl && (
-                                    <div className="flex gap-2 mt-4 text-[10px] font-black uppercase tracking-widest">
+                                    <div className="flex gap-4 mt-6 text-[10px] font-black uppercase tracking-[0.2em] italic">
                                         <button
                                             onClick={() => openFile(task.fileUrl)}
-                                            className="flex-1 flex items-center justify-center space-x-2 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-all border border-blue-100"
+                                            className="flex-1 flex items-center justify-center space-x-3 py-4 bg-white/[0.03] text-slate-500 rounded-xl hover:bg-white/[0.06] hover:text-white transition-all duration-500 border border-white/5 shadow-xl"
                                         >
-                                            <Eye size={14} />
-                                            <span>View Prompt</span>
+                                            <Eye size={16} />
+                                            <span>Open Prompt</span>
                                         </button>
                                         <button
                                             onClick={() => forceDownload(task.fileUrl, `Assignment_${task.title}.pdf`)}
-                                            className="flex-1 flex items-center justify-center space-x-2 py-3 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-all border border-indigo-100"
+                                            className="flex-1 flex items-center justify-center space-x-3 py-4 bg-white/[0.03] text-slate-500 rounded-xl hover:bg-white/[0.06] hover:text-white transition-all duration-500 border border-white/5 shadow-xl"
                                         >
-                                            <Download size={14} />
+                                            <Download size={16} />
                                             <span>Download</span>
                                         </button>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="mt-8">
+                            <div className="mt-10 relative z-10">
                                 {!submission ? (
                                     <Button
                                         variant="primary"
-                                        className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-100 group"
+                                        className="w-full py-5 rounded-2xl shadow-2xl shadow-orange-500/20 group"
                                         onClick={() => { setSelectedAssignment(task); setShowSubmitModal(true); }}
                                     >
-                                        Open Submission Portal <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                                        Open Synchronization Portal <ArrowRight size={18} className="ml-3 group-hover:translate-x-2 transition-transform duration-500" />
                                     </Button>
                                 ) : (
-                                    <Button variant="secondary" className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] border-2 border-emerald-500/10 bg-emerald-50/20 text-emerald-600 cursor-default">
-                                        <CheckCircle2 size={14} className="mr-2" /> Protocol Synchronized
-                                    </Button>
+                                    <div className="w-full py-5 rounded-2xl bg-white/[0.05] border border-white/5 text-emerald-500 flex items-center justify-center italic font-black text-[10px] uppercase tracking-[0.3em] shadow-inner">
+                                        <CheckCircle2 size={18} className="mr-3" /> Operational Link Secure
+                                    </div>
                                 )}
                             </div>
                         </Card>
@@ -285,15 +290,18 @@ const Assignments = () => {
                 })}
             </div>
 
-            <Modal isOpen={showSubmitModal} onClose={() => { if (!isSubmitting) setShowSubmitModal(false); }} title="Upload Submission Protocol">
-                <form className="space-y-8" onSubmit={handleSubmit}>
-                    <div className="space-y-1">
-                        <h4 className="text-lg font-black text-slate-800">{selectedAssignment?.title}</h4>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Target: {selectedAssignment?.batchName}</p>
+            <Modal isOpen={showSubmitModal} onClose={() => { if (!isSubmitting) setShowSubmitModal(false); }} title="Transmission Protocol">
+                <form className="space-y-10 py-4" onSubmit={handleSubmit}>
+                    <div className="space-y-3">
+                        <h4 className="text-3xl font-black text-white italic tracking-tighter uppercase leading-none">{selectedAssignment?.title}</h4>
+                        <div className="flex items-center gap-3">
+                            <Badge variant="blue" className="bg-white/5 border-white/10">{selectedAssignment?.batchName}</Badge>
+                            <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] italic">Sector: Neural Unit</p>
+                        </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                        <label className="block text-sm font-bold text-slate-700">Digital Payload (PDF ONLY)</label>
+                    <div className="space-y-4">
+                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] italic">Digital Payload (PDF SECURE BINARY)</label>
                         <div className="relative group">
                             <input
                                 type="file"
@@ -305,42 +313,49 @@ const Assignments = () => {
                             />
                             <label
                                 htmlFor="submission-file"
-                                className={`flex flex-col items-center justify-center border-2 border-dashed rounded-[2rem] p-12 cursor-pointer transition-all ${selectedFile ? 'bg-emerald-50 border-emerald-300 text-emerald-600' : 'bg-slate-50 border-slate-200 text-slate-400 group-hover:border-indigo-300 group-hover:bg-indigo-50/20'}`}
+                                className={`flex flex-col items-center justify-center border-2 border-dashed rounded-[3rem] p-16 cursor-pointer transition-all duration-700 relative overflow-hidden ${selectedFile ? 'bg-orange-600/10 border-orange-500/40 text-orange-500 shadow-2xl' : 'bg-white/[0.02] border-white/5 text-slate-600 group-hover:border-orange-500/30 group-hover:bg-white/[0.04]'}`}
                             >
-                                <UploadCloud size={48} className={selectedFile ? "text-emerald-500" : "text-slate-300"} />
-                                <p className="text-xs font-black uppercase mt-6">{selectedFile ? selectedFile.name : "Select PDF for Encryption & Upload"}</p>
-                                <p className="text-[10px] font-bold opacity-60 mt-1 italic">Max Payload: 15MB</p>
+                                <div className="absolute inset-0 bg-gradient-to-br from-orange-600/5 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <UploadCloud size={64} className={`${selectedFile ? "text-orange-500" : "text-slate-800 group-hover:text-orange-500/30"} transition-all duration-700`} />
+                                <p className="text-sm font-black uppercase mt-8 italic text-center px-6 relative z-10">{selectedFile ? selectedFile.name : "Select Encrypted PDF Payload"}</p>
+                                <p className="text-[10px] font-bold opacity-40 mt-3 italic uppercase tracking-widest relative z-10">Security Constraint: 15MB MAX</p>
                             </label>
                         </div>
                     </div>
 
-                    <div className="flex gap-4 pt-4">
+                    <div className="flex gap-6 pt-6 relative z-10">
                         <Button
                             variant="secondary"
-                            className="flex-1 py-4 rounded-xl"
+                            className="flex-1 py-5 rounded-2xl bg-white/5 border-white/10 text-slate-500"
                             type="button"
                             onClick={() => setShowSubmitModal(false)}
                             disabled={isSubmitting}
                         >
-                            Abort
+                            Abort Signal
                         </Button>
                         <Button
                             variant="primary"
-                            className="flex-1 py-4 rounded-xl"
+                            className="flex-2 py-5 rounded-2xl shadow-2xl shadow-orange-500/20"
                             type="submit"
                             loading={isSubmitting}
+                            disabled={!selectedFile}
                         >
-                            {isSubmitting ? "Encrypting..." : "Execute Submission"}
+                            {isSubmitting ? "Encrypting Stream..." : "Initiate Synchronization"}
                         </Button>
                     </div>
                 </form>
             </Modal>
 
             {showSuccess && (
-                <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[150] animate-in slide-in-from-top-full duration-500">
-                    <Card className="!bg-emerald-600 !text-white border-none py-4 px-10 flex items-center space-x-4 shadow-[0_20px_40px_rgba(5,150,105,0.3)]">
-                        <CheckCircle2 size={24} />
-                        <span className="text-sm font-black uppercase tracking-widest text-white">Protocol Synchronized with Evaluator!</span>
+                <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[200] animate-in slide-in-from-top-full duration-1000">
+                    <Card className="!bg-[#0a0a0a] !text-white border-orange-500/30 border py-6 px-16 flex items-center space-x-6 shadow-[0_30px_60px_rgba(0,0,0,0.8)] rounded-[2.5rem] backdrop-blur-3xl">
+                        <div className="p-3 bg-orange-600 rounded-2xl shadow-[0_0_20px_rgba(234,88,12,0.4)] animate-pulse">
+                            <CheckCircle2 size={32} />
+                        </div>
+                        <div>
+                            <span className="text-lg font-black uppercase tracking-[0.2em] italic text-white leading-none block">Protocol Synchronized!</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 mt-2 block">Global Registry Updated In Real-Time</span>
+                        </div>
                     </Card>
                 </div>
             )}

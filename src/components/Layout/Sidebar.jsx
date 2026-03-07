@@ -33,73 +33,88 @@ const Sidebar = ({ isOpen, onClose }) => {
     const initials = userDoc?.name?.[0] || 'U';
 
     return (
-        <div className={`
-             fixed inset-y-0 left-0 w-80 bg-slate-900 flex flex-col text-slate-400 z-[70] transition-transform duration-500 ease-in-out lg:translate-x-0
+        <aside className={`
+             fixed inset-y-0 left-0 w-72 bg-[#050505] flex flex-col text-slate-500 z-[70] transition-transform duration-500 ease-in-out lg:translate-x-0 border-r border-white/5 shadow-[20px_0_60px_rgba(0,0,0,0.8)]
              ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         `}>
-            {/* Logo */}
-            <div className="p-8 pb-4 flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white">
-                        <Sparkles size={24} fill="currentColor" />
+            {/* Decorative Elements */}
+            <div className="absolute top-0 left-0 w-32 h-32 bg-orange-600/5 rounded-full blur-[80px] pointer-events-none"></div>
+
+            {/* Logo Section */}
+            <div className="p-10 flex items-center justify-between border-b border-white/5 bg-white/[0.01] group cursor-pointer relative z-10">
+                <div className="flex items-center space-x-5">
+                    <div className="bg-orange-600 p-3 rounded-2xl text-white shadow-[0_0_30px_rgba(234,88,12,0.4)] group-hover:scale-110 group-hover:rotate-6 transition-all duration-700">
+                        <GraduationCap size={28} strokeWidth={3} />
                     </div>
-                    <div className="leading-tight">
-                        <h1 className="text-xl font-black text-white tracking-tighter uppercase">NeoMinds</h1>
-                        <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Scholar Interface</p>
+                    <div>
+                        <h1 className="text-2xl font-black text-white tracking-tighter leading-none italic uppercase group-hover:text-orange-500 transition-colors">NeoMinds</h1>
+                        <p className="text-[10px] text-orange-600 font-black uppercase tracking-[0.3em] mt-2 leading-none italic">Scholar v3.0 Elite</p>
                     </div>
                 </div>
                 {/* Close button for mobile */}
-                <button onClick={onClose} className="p-2 lg:hidden text-slate-500 hover:text-white transition-colors">
+                <button onClick={onClose} className="p-3 lg:hidden text-slate-700 hover:text-white hover:bg-white/5 rounded-2xl transition-all border border-transparent hover:border-white/5">
                     <X size={24} />
                 </button>
             </div>
 
             {/* Nav Items */}
-            <nav className="flex-1 mt-8 space-y-1 px-4 noscroll overflow-y-auto" onClick={() => { if (window.innerWidth < 1024) onClose(); }}>
+            <nav className="flex-1 py-12 px-6 space-y-3 overflow-y-auto noscroll relative z-10 italic" onClick={() => { if (window.innerWidth < 1024) onClose(); }}>
                 {menuItems.map((item) => (
                     <NavLink
                         key={item.path}
                         to={item.path}
                         className={({ isActive }) => `
-                            flex items-center space-x-4 px-5 py-4 rounded-2xl transition-all duration-300 group
+                            flex items-center space-x-4 px-6 py-4 rounded-[1.5rem] transition-all duration-500 group relative overflow-hidden border border-transparent
                             ${isActive
-                                ? 'bg-indigo-600 text-white font-black shadow-xl shadow-indigo-600/20'
-                                : 'hover:bg-slate-800 hover:text-white font-bold'}
+                                ? 'bg-white/[0.03] text-orange-500 font-black border-white/5 shadow-2xl scale-[1.02]'
+                                : 'hover:bg-white/[0.02] hover:text-white hover:border-white/5'}
                         `}
                     >
                         {({ isActive }) => (
                             <>
-                                <item.icon size={20} className={isActive ? 'text-white' : 'text-slate-500 group-hover:text-white'} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
+                                {isActive && (
+                                    <div className="absolute left-0 top-3 bottom-3 w-1 bg-orange-600 rounded-r-full shadow-[0_0_15px_rgba(234,88,12,0.8)] animate-pulse"></div>
+                                )}
+                                <item.icon size={22} className={`relative z-10 transition-all duration-500 ${isActive ? 'text-orange-500 scale-110' : 'text-slate-700 group-hover:text-orange-500 group-hover:scale-110'}`} />
+                                <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.2em]">{item.label}</span>
+                                {isActive && (
+                                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-600 shadow-[0_0_10px_rgba(234,88,12,1)] animate-pulse"></div>
+                                )}
                             </>
                         )}
                     </NavLink>
                 ))}
             </nav>
 
-            {/* User Info */}
-            <div className="p-6">
-                <div className="bg-slate-800/50 rounded-3xl p-5 border border-slate-700/50 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-600/10 rounded-full -mr-8 -mt-8 blur-xl group-hover:scale-150 transition-transform"></div>
-                    <div className="flex items-center space-x-4 relative z-10">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-700 flex-shrink-0 flex items-center justify-center font-black text-white text-lg lowercase">
+            {/* User Info / Logout Section */}
+            <div className="p-8 border-t border-white/5 bg-white/[0.01] relative z-10">
+                <div className="bg-white/[0.02] backdrop-blur-3xl rounded-[2.5rem] p-6 border border-white/5 relative overflow-hidden group hover:border-orange-500/30 transition-all duration-1000 cursor-pointer shadow-2xl">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/10 rounded-full -mr-16 -mt-16 blur-[50px] group-hover:scale-150 transition-transform duration-1000 opacity-50"></div>
+                    <div className="flex items-center space-x-5 relative z-10">
+                        <div className="w-16 h-16 rounded-2xl bg-[#0a0a0a] flex-shrink-0 flex items-center justify-center font-black text-orange-500 text-xl border border-white/10 shadow-inner group-hover:scale-110 group-hover:border-orange-500/40 transition-all duration-500 italic">
                             {initials}
                         </div>
                         <div className="min-w-0">
-                            <p className="text-[10px] font-black text-white truncate uppercase tracking-tighter">{userDoc?.name || 'Academic Scholar'}</p>
-                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest truncate">Reg No: ...{userDoc?.uid?.slice(-6)}</p>
+                            <p className="text-[10px] font-black text-white truncate uppercase tracking-widest italic leading-none">{userDoc?.name || 'Academic Scholar'}</p>
+                            <div className="flex items-center space-x-2 mt-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,1)]"></div>
+                                <p className="text-[8px] font-black text-slate-700 uppercase tracking-widest leading-none italic">Neural Network Online</p>
+                            </div>
                         </div>
                     </div>
                     <button
                         onClick={() => logout()}
-                        className="w-full mt-4 flex items-center justify-center space-x-2 py-3 text-[9px] font-black uppercase tracking-widest text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl transition-all"
+                        className="w-full mt-8 flex items-center justify-center space-x-4 py-5 text-[10px] font-black uppercase tracking-[0.25em] italic text-slate-700 bg-white/[0.01] hover:bg-rose-600 hover:text-white hover:border-transparent rounded-2xl transition-all duration-500 border border-white/5 shadow-lg group overflow-hidden relative"
                     >
-                        <LogOut size={12} />
-                        <span>Sign Out Profile</span>
+                        <LogOut size={18} className="group-hover:-translate-x-1 transition-transform relative z-10" />
+                        <span className="relative z-10">Terminate Session</span>
                     </button>
+                    <div className="mt-4 flex justify-center">
+                        <p className="text-[7px] font-black text-slate-800 uppercase tracking-[0.4em] italic opacity-50 group-hover:opacity-100 transition-opacity">Registry Data Synchronized</p>
+                    </div>
                 </div>
             </div>
-        </div>
+        </aside>
     );
 };
 
