@@ -1,35 +1,44 @@
 /**
- * Smart File Protocol
+ * FILE PROTOCOL (v4.0 - Base)
+ * Optimized for Student Viewing / Downloading
  */
 
+// 🛡️ Open/View Resource
 export const openFile = (url) => {
     if (!url) return;
-    window.open(url, '_blank');
+
+    // Safety check: remove any previously added flags
+    let viewUrl = url;
+    if (viewUrl.includes('cloudinary.com')) {
+        viewUrl = viewUrl.replace('/fl_attachment/', '/');
+    }
+
+    const win = window.open(viewUrl, '_blank');
+    if (win) {
+        win.focus();
+    } else {
+        alert('Blocked: Please allow popups.');
+    }
 };
 
-export const forceDownload = async (url, filename) => {
+// 🛡️ Safe Download Resource
+export const forceDownload = (url, filename) => {
     if (!url) return;
 
+    // Use pure URL for binary integrity
     let downloadUrl = url;
-    if (downloadUrl.includes('cloudinary.com') && !downloadUrl.includes('fl_attachment')) {
-        downloadUrl = downloadUrl.replace('/upload/', '/upload/fl_attachment/');
+    if (downloadUrl.includes('cloudinary.com')) {
+        downloadUrl = downloadUrl.replace('/fl_attachment/', '/');
     }
 
-    try {
-        const response = await fetch(downloadUrl);
-        const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.target = "_blank";
 
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.setAttribute('download', filename || 'submission_download');
-        document.body.appendChild(link);
-        link.click();
+    // Explicitly request download with filename
+    link.setAttribute('download', filename || 'neominds_student_resource');
 
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(blobUrl);
-    } catch (error) {
-        console.error("Download Error:", error);
-        window.open(downloadUrl, '_blank');
-    }
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
