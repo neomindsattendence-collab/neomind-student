@@ -93,21 +93,20 @@ const Dashboard = () => {
 
             {/* Live Class Alert Banner */}
             {isAnyLive && sessionStatus === 'OFFLINE' && (
-                <div className="bg-[#050505]/40 backdrop-blur-3xl rounded-[4rem] p-12 md:p-16 text-white flex flex-col lg:flex-row justify-between items-center gap-12 shadow-[0_30px_100px_rgba(0,0,0,0.8)] animate-in slide-in-from-top-20 duration-1000 relative overflow-hidden group border border-orange-500/10 hover:border-orange-500/30 transition-all">
-                    <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-orange-600/[0.07] rounded-full translate-x-1/2 -translate-y-1/2 blur-[140px] pointer-events-none group-hover:scale-110 transition-transform duration-1000"></div>
-                    <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-indigo-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+                <div className="bg-[#050505]/40 backdrop-blur-3xl rounded-[2.5rem] p-8 md:p-10 text-white flex flex-col lg:flex-row justify-between items-center gap-8 shadow-[0_30px_100px_rgba(0,0,0,0.8)] animate-in slide-in-from-top-20 duration-1000 relative overflow-hidden group border border-orange-500/10 hover:border-orange-500/30 transition-all">
+                    <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-orange-600/[0.07] rounded-full translate-x-1/2 -translate-y-1/2 blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000"></div>
 
-                    <div className="flex items-center space-x-12 relative z-20 w-full lg:w-auto">
-                        <div className="w-28 h-28 bg-orange-600 text-white rounded-[2.5rem] flex items-center justify-center shadow-[0_0_60px_rgba(234,88,12,0.5)] animate-pulse border border-white/20 transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-700">
-                            <Radio size={56} strokeWidth={2.5} />
+                    <div className="flex items-center space-x-8 relative z-20 w-full lg:w-auto">
+                        <div className="w-20 h-20 bg-orange-600 text-white rounded-2xl flex items-center justify-center shadow-[0_0_60px_rgba(234,88,12,0.5)] animate-pulse border border-white/20 transform group-hover:rotate-12 group-hover:scale-110 transition-all duration-700">
+                            <Radio size={36} strokeWidth={2.5} />
                         </div>
-                        <div className="italic">
-                            <div className="flex items-center gap-4 mb-5">
-                                <span className="w-3 h-3 bg-orange-500 rounded-full animate-ping shadow-[0_0_15px_#f97316]"></span>
-                                <Badge variant="warning" className="px-6 py-2 tracking-[0.3em] font-black text-[10px] italic bg-orange-500/10 border-orange-500/20">NEURAL STREAM INITIALIZED</Badge>
+                        <div>
+                            <div className="flex items-center gap-4 mb-3">
+                                <span className="w-2 h-2 bg-orange-500 rounded-full animate-ping shadow-[0_0_15px_#f97316]"></span>
+                                <Badge variant="warning" className="px-4 py-1.5 tracking-[0.2em] font-black text-[9px] bg-orange-500/10 border-orange-500/20">NEURAL STREAM INITIALIZED</Badge>
                             </div>
-                            <h3 className="text-5xl md:text-7xl font-black tracking-tighter italic uppercase leading-none underline decoration-orange-600/20">{activeBatchLive?.name}</h3>
-                            <p className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-700 mt-6 italic">Status: Academic Signal Detected • Encrypted Link Protocol Active</p>
+                            <h3 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none underline decoration-orange-600/20">{activeBatchLive?.name}</h3>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-700 mt-4">Status: Academic Signal Detected • Encrypted Link Protocol Active</p>
                         </div>
                     </div>
 
@@ -125,13 +124,13 @@ const Dashboard = () => {
             )}
 
             {/* Welcome Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-10 px-4">
-                <div className="space-y-4">
-                    <Badge variant="blue" className="px-8 py-3 tracking-[0.3em] font-black text-[10px] italic bg-indigo-500/5 border-indigo-500/10 text-indigo-500">CORE PROTOCOL v4.0 ONLINE</Badge>
-                    <h1 className="text-6xl md:text-8xl font-black text-white tracking-tighter leading-none italic uppercase mt-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-4">
+                <div className="space-y-3">
+                    <Badge variant="blue" className="px-6 py-2 tracking-[0.2em] font-black text-[9px] bg-indigo-500/5 border-indigo-500/10 text-indigo-500">CORE PROTOCOL v4.0 ONLINE</Badge>
+                    <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-none mt-4">
                         Hello, <span className="text-orange-500 underline decoration-orange-600/20">{userDoc?.name?.split(' ')[0] || 'Scholar'}</span>
                     </h1>
-                    <p className="text-slate-700 font-black mt-6 uppercase tracking-[0.4em] text-[11px] italic">Accessing your neural academy console • Registry Synchronized</p>
+                    <p className="text-slate-700 font-black mt-4 uppercase tracking-[0.3em] text-[10px]">Accessing your neural academy console • Registry Synchronized</p>
                 </div>
             </div>
 
@@ -145,14 +144,14 @@ const Dashboard = () => {
                                     <div className="absolute -top-20 -right-20 opacity-[0.02] group-hover:opacity-[0.08] group-hover:scale-125 group-hover:rotate-12 transition-all duration-1000">
                                         <Layers size={350} className="text-orange-600" />
                                     </div>
-                                    <div className="relative z-10 space-y-8">
+                                    <div className="relative z-10 space-y-6">
                                         <div className="flex justify-between items-start">
-                                            <Badge variant="blue" className="bg-indigo-500/5 border-indigo-500/10 text-indigo-500 font-black px-5 py-2 uppercase tracking-widest">{batch.course}</Badge>
-                                            <Shield size={24} className="text-orange-600 opacity-20 group-hover:opacity-50 transition-opacity" strokeWidth={1.5} />
+                                            <Badge variant="blue" className="bg-indigo-500/5 border-indigo-500/10 text-indigo-500 font-black px-4 py-1.5 uppercase tracking-widest text-[8px]">{batch.course}</Badge>
+                                            <Shield size={20} className="text-orange-600 opacity-20 group-hover:opacity-50 transition-opacity" strokeWidth={1.5} />
                                         </div>
                                         <div>
-                                            <h3 className="text-5xl font-black text-white tracking-tighter leading-none mb-4 uppercase italic group-hover:text-orange-500 transition-colors underline decoration-orange-600/10">{batch.name}</h3>
-                                            <p className="text-[11px] font-black text-slate-700 uppercase tracking-[0.3em] italic">Frequency: {batch.timing || 'Global Time Protocol'}</p>
+                                            <h3 className="text-3xl font-black text-white tracking-tighter leading-none mb-3 uppercase group-hover:text-orange-500 transition-colors underline decoration-orange-600/10">{batch.name}</h3>
+                                            <p className="text-[10px] font-black text-slate-700 uppercase tracking-[0.2em]">Frequency: {batch.timing || 'Global Time Protocol'}</p>
                                         </div>
 
                                         <div className="pt-10 border-t border-white/5 flex gap-6">
